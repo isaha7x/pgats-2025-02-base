@@ -1,0 +1,35 @@
+name: CI - Trabalho de conclusão da disciplina de Automação de Testes em APIs
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Baixar código
+      uses: actions/checkout@v4
+
+    - name: Configurar Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+
+    - name: Instalar pacotes
+      run: npm install
+
+    - name: Executar testes REST
+      run: npm run test-rest-controller
+
+    - name: Iniciar API GraphQL
+      run: npm run start-graphql &
+
+    - name: Aguardar API GraphQL
+      run: npx wait-on http://localhost:4000/graphql
+
+    - name: Executar testes GraphQL externos
+      run: npm run test-graphql-external
