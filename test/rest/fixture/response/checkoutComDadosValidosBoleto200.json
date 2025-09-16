@@ -1,0 +1,8 @@
+{
+  "valorFinal": 180,
+  "userId": 1,
+  "items": [ { "productId": 1, "quantity": 1 } ],
+  "freight": 80,
+  "paymentMethod": "boleto",
+  "total": 180
+}
