@@ -22,14 +22,11 @@ jobs:
     - name: Instalar dependências do projeto
       run: npm install
 
-    - name: Iniciar serviço REST
-      run: npm run start-rest &
-
     - name: Iniciar serviço GraphQL
       run: npm run start-graphql &
 
     - name: Esperar APIs ficarem disponíveis
-      run: npx wait-on http://localhost:3000 http://localhost:4000/graphql
+      run: sleep 10
 
     - name: Rodar testes da API REST
       run: npm run test-rest-controller
