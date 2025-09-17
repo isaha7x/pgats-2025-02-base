@@ -7,29 +7,32 @@ on:
     branches: [ "main" ]
 
 jobs:
-  run-tests:
+  ci-job:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Baixar código
+    - name: Clonar repositório
       uses: actions/checkout@v4
 
-    - name: Configurar Node.js
+    - name: Configurar ambiente Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18.x'
+        node-version: '20.x'
 
-    - name: Instalar pacotes
+    - name: Instalar dependências do projeto
       run: npm install
 
-    - name: Executar testes REST
-      run: npm run test-rest-controller
+    - name: Iniciar serviço REST
+      run: npm run start-rest &
 
-    - name: Iniciar API GraphQL
+    - name: Iniciar serviço GraphQL
       run: npm run start-graphql &
 
-    - name: Aguardar API GraphQL
-      run: npx wait-on http://localhost:4000/graphql
+    - name: Esperar APIs ficarem disponíveis
+      run: npx wait-on http://localhost:3000 http://localhost:4000/graphql
 
-    - name: Executar testes GraphQL externos
+    - name: Rodar testes da API REST
+      run: npm run test-rest-controller
+
+    - name: Rodar testes da API GraphQL
       run: npm run test-graphql-external
