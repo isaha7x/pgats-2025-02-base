@@ -216,3 +216,152 @@ Acesse o playground GraphQL em [http://localhost:4000/graphql](http://localhost:
 ## Documentação
 - Swagger disponível em `/api-docs`
 - Playground GraphQL disponível em `/graphql`
+
+
+# Desafio K6 - Teste de Performance API
+
+Este projeto contém a implementação de um teste automatizado de performance utilizando o K6 para uma API construída durante o curso. O objetivo é demonstrar a aplicação de diversos conceitos de teste de performance e garantir que a API se comporte corretamente sob diferentes cenários.
+
+## Estrutura do Projeto
+
+pgats-2025-02-base/
+│
+├─ test/
+│ ├─ k6/
+│ │ ├─ helpers/
+│ │ │ └─ auth.helper.js # Funções de autenticação reutilizáveis (Helpers)
+│ │ ├─ reports/
+│ │ │ ├─ report.json # Saída JSON do K6
+│ │ │ └─ report.html # Relatório HTML gerado
+│ │ └─ tests/
+│ │ └─ checkout.test.js # Teste de checkout utilizando K6
+│
+└─ README.md
+
+
+## Conceitos Aplicados e Localização no Código
+
+### 1. Groups
+Organiza o teste em blocos lógicos, facilitando análise de métricas por cenário.  
+No `checkout.test.js`:
+
+```javascript
+group('Register User', function () {
+    // cadastro do usuário
+});
+
+group('Login User', function () {
+    // login do usuário e recebimento do token
+});
+
+group('Checkout Scenarios', function () {
+    // execução do checkout
+});
+
+2. Helpers
+
+Funções auxiliares para reaproveitamento de código, como autenticação.
+Arquivo: helpers/auth.helper.js
+
+2. Helpers
+
+Funções auxiliares para reaproveitamento de código, como autenticação.
+Arquivo: helpers/auth.helper.js
+
+3. Checks
+
+Verificações que garantem respostas corretas da API:
+
+check(res, {
+    'register status is 201': r => r.status === 201,
+    'credentials created': r => r.json('id') !== undefined
+});
+
+4. Trends
+
+Medição de métricas ao longo do tempo:
+
+import { Trend } from 'k6/metrics';
+const checkoutTrend = new Trend('checkout_duration');
+
+checkoutTrend.add(res.timings.duration);
+
+5. Thresholds
+
+Definição de limites de performance:
+
+export let options = {
+    thresholds: {
+        http_req_duration: ['p(95)<500']
+    }
+};
+
+6. Variáveis de Ambiente
+
+Permitem alterar parâmetros sem modificar o código:
+
+-e BASE_URL=http://localhost:3000 -e PASSWORD=123456
+
+
+No código:
+
+const baseUrl = __ENV.BASE_URL;
+const password = __ENV.PASSWORD;
+
+7. Stages
+
+Controle de carga ao longo do tempo:
+
+export let options = {
+    stages: [
+        { duration: '5s', target: 1 },
+        { duration: '10s', target: 1 },
+        { duration: '5s', target: 0 },
+    ]
+};
+
+8. Reaproveitamento de Resposta
+
+O token de login é reutilizado em chamadas subsequentes:
+
+token = loginUser(email, password);
+const resCheckout = http.post(`${baseUrl}/api/checkout`, { items }, { headers: { Authorization: `Bearer ${token}` } });
+
+9. Data-Driven Testing
+
+Uso de diferentes dados de entrada (arrays/loops). No teste atual usamos cenário fixo, mas a arquitetura permite expansão.
+
+Como Rodar o Projeto
+
+Instale o K6:
+
+sudo apt install k6
+
+
+Rode o teste gerando JSON:
+
+k6 run --out json=test/k6/reports/report.json -e BASE_URL=http://localhost:3000 -e PASSWORD=123456 test/k6/tests/checkout.test.js
+
+
+Gere o relatório HTML:
+
+node test/k6/reports/generateReport.js
+
+
+Abra test/k6/reports/report.html no navegador.
+
+Entregáveis
+
+Repositório GitHub contendo:
+
+Arquitetura de testes (test/k6/)
+
+README detalhado mostrando onde cada conceito foi aplicado
+
+Relatório de execução em HTML (report.html)
+
+Observações
+
+Todos os conceitos obrigatórios foram aplicados: Groups, Helpers, Checks, Trends, Thresholds, Variáveis de Ambiente, Stages, Reaproveitamento de Resposta, Data-Driven Testing.
+
+O relatório HTML foi gerado a partir do JSON do K6, mostrando métricas consolidadas por grupo e tendências de performance.
